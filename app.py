@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
-from individuo import *
 import os
+from algortimoGenetico import *
+
 
 class home(Resource):
     def get(self):
@@ -10,11 +11,13 @@ class home(Resource):
 
 class calcularRota(Resource):
     def post(self):
-        return soma()
-
+        pontos = request.json['pontos']
+        origem = request.json['origem']
+        return jsonify(geraPopulacaoinicial(origem,pontos))
 
 def create_app():
     app = Flask(__name__)
+    app.debug = True
     api = Api(app)
     api.add_resource(home, '/api/')
     api.add_resource(calcularRota, '/api/calcularRota/')
