@@ -13,7 +13,8 @@ class calcularRota(Resource):
     def post(self):
         pontos = request.json['pontos']
         origem = request.json['origem']
-        return jsonify(geraPopulacaoinicial(origem,pontos))
+
+        return jsonify(fitnessFunction(geraPopulacaoinicial(origem,pontos)))
 
 def create_app():
     app = Flask(__name__)
