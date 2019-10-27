@@ -31,8 +31,11 @@ class calcularRota(Resource):
             print("GERACAO: " + str(countGeracao))
             print("========================================")
             auxMelhor = melhor
+
             newPopulacao = crossover(populacao)
             newPopulacao.insert(0, melhor) # insiro o melhor na nova população, o melhor é o modelo
+            melhor = fitnessFunction(newPopulacao)
+            newPopulacao = mutacao(newPopulacao)
             melhor = fitnessFunction(newPopulacao)
 
             if melhor == auxMelhor:

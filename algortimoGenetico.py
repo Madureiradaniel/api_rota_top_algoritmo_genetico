@@ -100,7 +100,7 @@ def fitnessFunction(populacao):
 """Método de seleção  
 """
 def selecaoRoleta(populacao):
-    print("_________________SELECAO____________________________\n")
+    #print("_________________SELECAO____________________________\n")
 
     selecionado = []
     somaPesos = 0
@@ -117,8 +117,8 @@ def selecaoRoleta(populacao):
     else:
         selecionado = populacao[posicaoEscolhida]
 
-    print("_________________INDIVIDUO SELECIONADO____________________________\n")
-    print(str(selecionado) + "\n")
+    #print("_________________INDIVIDUO SELECIONADO____________________________\n")
+    #print(str(selecionado) + "\n")
 
     return selecionado #retorno os selecionados, a quantidade vai ser a mesma que a da populacao.
 
@@ -169,5 +169,32 @@ def crossover(populacao):
 
 """Mutacao (altera um gene)
 """
-def mutacao(individuo):
-    return 0
+def mutacao(populacao):
+    print("_________________MUTACAO____________________________\n")
+    menor = 0 #meu criterio para mutação é pegar quem tem o menor fitness
+    for individuo in range(len(populacao[1:])):
+        if populacao[individuo].fitness < populacao[menor].fitness:
+            menor = individuo
+
+    # escolho dois pontos aleatorios para fazer a troca no individuo
+    ponto1 = randint(0, len(populacao[menor].pontos)-1)
+    ponto2 = randint(0, len(populacao[menor].pontos)-1)
+
+    while ponto1 == ponto2:
+        ponto2 = randint(0, len(populacao[menor].pontos)-1)
+
+    print("pontos antes: " + str(populacao[menor].pontos))
+    aux = populacao[menor].pontos[ponto1]
+    populacao[menor].pontos[ponto1] = populacao[menor].pontos[ponto2]
+    populacao[menor].pontos[ponto2] = aux
+    print("pontos depois: " + str(populacao[menor].pontos))
+
+    #com os pontos trocados novamente chamo a api para calcular o KM e o TEMPO
+
+    calculo = calculateRoute(populacao[menor].origem,populacao[menor].pontos)
+    populacao[menor].duracao = calculo["routes"][0]["legs"][0]["duration"]["value"]
+    populacao[menor].distancia = calculo["routes"][0]["legs"][0]["distance"]["value"]
+    populacao[menor].duracaoText = calculo["routes"][0]["legs"][0]["duration"]["text"]
+    populacao[menor].distanciaText = calculo["routes"][0]["legs"][0]["distance"]["text"]
+
+    return populacao
