@@ -3,6 +3,7 @@
 
 from individuo import Individuo
 from datetime import datetime
+from random import randint,uniform
 from sklearn.utils import shuffle
 import json,requests, random
 
@@ -47,7 +48,7 @@ def calculateRoute (origem,pontos):
 def geraPopulacaoinicial(origem,pontos):
 
     populacao = []
-    qtdIndividuosInicial = len(pontos)
+    qtdIndividuosInicial = len(pontos)*2 # a quantidade de individuos vai depender da quantidade de pontos
 
     print("-----------------------GERANDO POPULAÇÃO-----------------------------------")
     print("QUANTIDADE INICIAL DE INDIVIDUOS " + str(qtdIndividuosInicial))
@@ -56,6 +57,7 @@ def geraPopulacaoinicial(origem,pontos):
 
         print("INDIVIDUO: " + str(i+1))
         pontosEmbaralhado = shuffle(pontos)
+
         calculo = calculateRoute(origem, pontosEmbaralhado)
 
         individuo = Individuo(origem, pontosEmbaralhado,
@@ -86,9 +88,9 @@ def fitnessFunction(populacao):
     print("MELHOR INDIVIDUO-->" + str(melhor) + "\n")
 
     count = 1
-    for individuo in populacao:#calcular o fitness de acordo com o melhor escolhido
+    for individuo in populacao: # calcular o fitness de acordo com o melhor escolhido
         fitness = ((melhor.distancia/melhor.duracao) / (individuo.distancia/individuo.duracao))
-        individuo.fitness = (0 if fitness > 1 else fitness) #caso seja maior do que,1 significa que levou muito tempo, e será punido com 0
+        individuo.fitness = (0 if fitness > 1 else fitness) # caso seja maior do que,1 significa que levou muito tempo, e será punido com 0
         print("INDIVIDUO: "+ str(count)+ " fitness: " + str(individuo.fitness))
         count += 1
 
@@ -98,33 +100,74 @@ def fitnessFunction(populacao):
 """Método de seleção  
 """
 def selecaoRoleta(populacao):
+    print("_________________SELECAO____________________________\n")
 
-    selecionados = []
+    selecionado = []
     somaPesos = 0
+
     for individuo in populacao:
         somaPesos += individuo.fitness
 
-    sorteio = random.randint(0, somaPesos)
+    sorteio = uniform(0, somaPesos)
+    posicaoEscolhida = -1
 
-    #repito o processo do tamanho da minha população
-    for i in populacao:
-        posicaoEscolhida = -1
-        while(sorteio>0):#se sorteio ficar 0 ou negativo achamos nossa posição
-            posicaoEscolhida += 1
-            sorteio -= populacao[posicaoEscolhida].fitness
-        else:
-            selecionados.append(populacao[posicaoEscolhida])
+    while sorteio > 0: #se sorteio ficar 0 ou negativo achamos nossa posição
+        posicaoEscolhida += 1
+        sorteio -= populacao[posicaoEscolhida].fitness
+    else:
+        selecionado = populacao[posicaoEscolhida]
 
-    return selecionados #retorno os selecionados, a quantidade vai ser a mesma que a da populacao.
+    print("_________________INDIVIDUO SELECIONADO____________________________\n")
+    print(str(selecionado) + "\n")
 
-"""Cruzamento(apenas de um ponto)
+    return selecionado #retorno os selecionados, a quantidade vai ser a mesma que a da populacao.
+
+"""Cruzamento(Cruzamento ordenado pois os pontos não pode se repetir)
 """
-def crossover(selecionados):
+def crossover(populacao):
+
+    print("_________________CROSSOVER____________________________\n")
+
     newPopulacao = []
+
+    for i in populacao: #vou gerar a mesma quantidade de individuos  para a nova geracao
+
+        filho = Individuo()
+        filhoParte1 = []
+        pai1 = selecaoRoleta(populacao)
+        pai2 = selecaoRoleta(populacao)
+
+        #escolho os genes inicial e final para pegarmos do pai1
+        gene1 = int(randint(0,len(pai1.pontos)))
+        gene2 = int(randint(0, len(pai1.pontos)))
+
+        menor = min(gene1,gene2)
+        maior = max(gene1,gene2)
+
+        #print("maior " + str(maior) + "menor " + str(menor))
+        for i in range(menor,maior):
+            filhoParte1.append(pai1.pontos[i])
+
+        filhoParte2 = [ponto for ponto in pai2.pontos if ponto not in filhoParte1] #pega os pontos restantes que não estão na parte 1
+
+        filho.pontos = filhoParte1 + filhoParte2 #junta as duas partes para formar uma só
+
+        calculo = calculateRoute(pai1.origem, filho.pontos)
+
+        filho.origem = pai1.origem
+        filho.duracao = calculo["routes"][0]["legs"][0]["duration"]["value"]
+        filho.distancia = calculo["routes"][0]["legs"][0]["distance"]["value"]
+        filho.duracaoText = calculo["routes"][0]["legs"][0]["duration"]["text"]
+        filho.distanciaText = calculo["routes"][0]["legs"][0]["distance"]["text"]
+        newPopulacao.append(filho)
+
+        print("_________________NOVO INDIVIDUO____________________________\n")
+        print(str(filho))
+
     return newPopulacao
 
 
 """Mutacao (altera um gene)
 """
-def mutacao(populacao):
+def mutacao(individuo):
     return 0

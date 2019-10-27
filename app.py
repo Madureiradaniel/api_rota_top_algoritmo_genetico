@@ -11,10 +11,43 @@ class home(Resource):
 
 class calcularRota(Resource):
     def post(self):
+
+        qtdGeracoes = 4    # se o melhor for o melhor por mais de N geracoes, o programa para
+        countGeracao = 0    # conta a geracao
+        countMelhor = 0     # conta a quantidade de vezes que o melhor foi o melhor
+
         pontos = request.json['pontos']
         origem = request.json['origem']
 
-        return jsonify(fitnessFunction(geraPopulacaoinicial(origem,pontos)))
+        if len(pontos) > 7:
+             return jsonify({"message:":"A quantidade de pontos ultrapassa o máximo permitido : 7 " })
+
+        populacao = geraPopulacaoinicial(origem, pontos)
+        melhor = fitnessFunction(populacao)
+
+        while countMelhor < qtdGeracoes:
+            countGeracao += 1
+            print("========================================")
+            print("GERACAO: " + str(countGeracao))
+            print("========================================")
+            auxMelhor = melhor
+            newPopulacao = crossover(populacao)
+            newPopulacao.insert(0, melhor) # insiro o melhor na nova população, o melhor é o modelo
+            melhor = fitnessFunction(newPopulacao)
+
+            if melhor == auxMelhor:
+                countMelhor += 1
+            else:
+                countMelhor = 0
+
+        json =jsonify(
+                {"origem": origem,
+                 "tempo: " : melhor.duracaoText,
+                 "Distancia KM: " : melhor.distanciaText,
+                 "melhorPontos": melhor.pontos,
+                 "Geracao: ": countGeracao})
+
+        return json
 
 def create_app():
     app = Flask(__name__)
