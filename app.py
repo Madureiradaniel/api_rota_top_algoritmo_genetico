@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
 import os
 from algortimoGenetico import *
+from flask_cors import CORS
 
 
 class home(Resource):
@@ -54,6 +55,7 @@ class calcularRota(Resource):
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)
     app.debug = True
     api = Api(app)
     api.add_resource(home, '/api/')
