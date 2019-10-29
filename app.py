@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_restful import Resource, Api
+from flask_api import status
 import os
 from algortimoGenetico import *
 from flask_cors import CORS
@@ -13,43 +14,47 @@ class home(Resource):
 class calcularRota(Resource):
     def post(self):
 
-        qtdGeracoes = 4    # se o melhor for o melhor por mais de N geracoes, o programa para
-        countGeracao = 0    # conta a geracao
-        countMelhor = 0     # conta a quantidade de vezes que o melhor foi o melhor
+        try:
+            qtdGeracoes = 4    # se o melhor for o melhor por mais de N geracoes, o programa para
+            countGeracao = 0    # conta a geracao
+            countMelhor = 0     # conta a quantidade de vezes que o melhor foi o melhor
 
-        pontos = request.json['pontos']
-        origem = request.json['origem']
+            pontos = request.json['pontos']
+            origem = request.json['origem']
 
-        if len(pontos) > 7:
-             return jsonify({"message:":"A quantidade de pontos ultrapassa o máximo permitido : 7 " })
+            if len(pontos) > 7:
+                 return {"message:":"A quantidade de pontos ultrapassa o máximo permitido : 7 " }, status.HTTP_400_BAD_REQUEST
 
-        populacao = geraPopulacaoinicial(origem, pontos)
-        melhor = fitnessFunction(populacao)
+            populacao = geraPopulacaoinicial(origem, pontos)
+            melhor = fitnessFunction(populacao)
 
-        while countMelhor < qtdGeracoes:
-            countGeracao += 1
-            print("========================================")
-            print("GERACAO: " + str(countGeracao))
-            print("========================================")
-            auxMelhor = melhor
+            while countMelhor < qtdGeracoes:
+                countGeracao += 1
+                print("========================================")
+                print("GERACAO: " + str(countGeracao))
+                print("========================================")
+                auxMelhor = melhor
 
-            newPopulacao = crossover(populacao)
-            newPopulacao.insert(0, melhor) # insiro o melhor na nova população, o melhor é o modelo
-            melhor = fitnessFunction(newPopulacao)
-            newPopulacao = mutacao(newPopulacao)
-            melhor = fitnessFunction(newPopulacao)
+                newPopulacao = crossover(populacao)
+                newPopulacao.insert(0, melhor) # insiro o melhor na nova população, o melhor é o modelo
+                melhor = fitnessFunction(newPopulacao)
+                newPopulacao = mutacao(newPopulacao)
+                melhor = fitnessFunction(newPopulacao)
 
-            if melhor == auxMelhor:
-                countMelhor += 1
-            else:
-                countMelhor = 0
+                if melhor == auxMelhor:
+                    countMelhor += 1
+                else:
+                    countMelhor = 0
 
-        json =jsonify(
-                {"origem": origem,
-                 "tempo: " : melhor.duracaoText,
-                 "Distancia KM: " : melhor.distanciaText,
-                 "melhorPontos": melhor.pontos,
-                 "Geracao: ": countGeracao})
+            json =jsonify(
+                    {"origem": origem,
+                     "tempo: " : melhor.duracaoText,
+                     "Distancia KM: " : melhor.distanciaText,
+                     "melhorPontos": melhor.pontos,
+                     "Geracao: ": countGeracao})
+        except:
+            content = {"message": "Não foi possível calcular a rota informada!"}
+            return content, status.HTTP_400_BAD_REQUEST
 
         return json
 
