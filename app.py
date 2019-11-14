@@ -48,10 +48,10 @@ class calcularRota(Resource):
 
             json =jsonify(
                     {"origem": origem,
-                     "tempo: " : melhor.duracaoText,
-                     "Distancia KM: " : melhor.distanciaText,
+                     "tempo" : melhor.duracaoText,
+                     "DistanciaKM" : melhor.distanciaText,
                      "melhorPontos": melhor.pontos,
-                     "Geracao: ": countGeracao})
+                     "Geracao": countGeracao})
         except:
             content = {"message": "Não foi possível calcular a rota informada!"}
             return content, status.HTTP_400_BAD_REQUEST
